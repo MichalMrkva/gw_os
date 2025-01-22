@@ -1,25 +1,27 @@
 #![no_std]
 #![no_main]
+#![feature(custom_test_frameworks)]
+#![test_runner(crate::test_runner)]
 
 use core::panic;
-
-static HELLO: &[u8] = b"Hello World!";
+mod vga_buffer;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    let vga_buffer = 0xb8000 as *mut u8;
-
-    for (i, &byte) in HELLO.iter().enumerate() {
-        unsafe {
-            *vga_buffer.offset(i as isize * 2) = byte;
-            *vga_buffer.offset(i as isize * 2 + 1) = 0xa;
-        }
-    }
-
+    let val = 56;
+    println!("Ahoj světe {}", val);
     loop {}
 }
 
 #[panic_handler]
-fn panic(_info: &panic::PanicInfo) -> ! {
+fn panic(info: &panic::PanicInfo) -> ! {
+    println!("{}", info);
     loop {}
+}
+#[cfg(test)]
+pub fn test_runner(tests: &[&dyn Fn()]) {
+    println!("Running {} tests", tests.len());
+    for test in tests {
+        test();
+    }
 }
